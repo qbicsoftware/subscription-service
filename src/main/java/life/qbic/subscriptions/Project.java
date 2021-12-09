@@ -1,4 +1,4 @@
-package life.qbic.springbootresttemplate;
+package life.qbic.subscriptions;
 
 public class Project {
 

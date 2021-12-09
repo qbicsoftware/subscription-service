@@ -1,6 +1,6 @@
-package life.qbic.springbootresttemplate.encoding;
+package life.qbic.subscriptions.encoding;
 
-import life.qbic.springbootresttemplate.subscriptions.CancellationRequest;
+import life.qbic.subscriptions.subscriptions.CancellationRequest;
 
 public interface RequestDecoder {
 

@@ -1,4 +1,4 @@
-package life.qbic.springbootresttemplate.subscriptions;
+package life.qbic.subscriptions.subscriptions;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package life.qbic.springbootresttemplate;
+package life.qbic.subscriptions;
 
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package life.qbic.springbootresttemplate.subscriptions;
+package life.qbic.subscriptions.subscriptions;
 
 /**
  * <b>Record CancellationRequest</b>

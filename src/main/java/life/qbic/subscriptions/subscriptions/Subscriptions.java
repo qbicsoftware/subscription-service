@@ -1,9 +1,9 @@
-package life.qbic.springbootresttemplate.subscriptions;
+package life.qbic.subscriptions.subscriptions;
 
 import java.util.Properties;
 import javax.annotation.PostConstruct;
-import life.qbic.springbootresttemplate.subscriptions.entities.Person;
-import life.qbic.springbootresttemplate.subscriptions.entities.Subscription;
+import life.qbic.subscriptions.subscriptions.entities.Person;
+import life.qbic.subscriptions.subscriptions.entities.Subscription;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
 import org.springframework.beans.factory.annotation.Autowired;

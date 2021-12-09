@@ -1,4 +1,4 @@
-package life.qbic.springbootresttemplate.subscriptions.entities;
+package life.qbic.subscriptions.subscriptions.entities;
 
 public class Subscription {
 
