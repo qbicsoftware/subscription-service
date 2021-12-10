@@ -3,6 +3,8 @@ package life.qbic.subscriptions;
 import life.qbic.subscriptions.encoding.RequestDecoder;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/subscription")
 public class SubscriptionController {
+
+  private static final Logger log = LogManager.getLogger(SubscriptionController.class);
 
   RequestDecoder requestDecoder;
 
@@ -43,11 +47,10 @@ public class SubscriptionController {
   }
 
   private void removeSubscription(CancellationRequest request) {
-    System.out.println("Removing subscription");
     try {
       subscriptionRepository.cancelSubscription(request);
     } catch (Exception e) {
-      System.out.println(e);
+      log.error(e);
       throw new CancellationFailure("Unexpected failure.");
     }
   }
@@ -93,7 +96,9 @@ public class SubscriptionController {
   }
 
   public static class CancellationFailure extends RuntimeException {
+
     final String reason;
+
     public CancellationFailure(String reason) {
       super();
       this.reason = reason;
