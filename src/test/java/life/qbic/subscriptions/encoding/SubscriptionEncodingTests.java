@@ -15,27 +15,29 @@ class SubscriptionEncodingTests {
 
   @Test
   void decode() {
-    Decoder<String, CancellationRequest> decoder = new SubscriptionEncoding(secret);
-    assertEquals(expectedRequest, decoder.decode(encodedString));
+    RequestDecoder decoder = new SubscriptionEncoding(secret);
+    assertEquals(expectedRequest, decoder.decodeCancellationRequest(encodedString));
   }
 
   /*Decode throws Exception for non-matching secret*/
   @Test
   void decodeThrowsExceptionForNonMatchingSecret() {
-    Decoder<String, CancellationRequest> decoder = new SubscriptionEncoding(secret + "ABCD");
-    assertThrows(DecodingException.class, () -> decoder.decode(encodedString));
+    RequestDecoder decoder = new SubscriptionEncoding(secret + "ABCD");
+    assertThrows(DecodingException.class, () -> decoder.decodeCancellationRequest(encodedString));
   }
 
   @Test
   void encode() {
-    Encoder<CancellationRequest, String> encoder = new SubscriptionEncoding(secret);
-    assertEquals(encodedString, encoder.encode(expectedRequest));
+    RequestEncoder encoder = new SubscriptionEncoding(secret);
+    assertEquals(encodedString, encoder.encodeCancellationRequest(expectedRequest));
   }
 
   @Test
   void encodeAndDecodeAreInSync() {
     SubscriptionEncoding subscriptionEncoding = new SubscriptionEncoding("ZXM!I");
     assertEquals(
-        expectedRequest, subscriptionEncoding.decode(subscriptionEncoding.encode(expectedRequest)));
+        expectedRequest,
+        subscriptionEncoding.decodeCancellationRequest(
+            subscriptionEncoding.encodeCancellationRequest(expectedRequest)));
   }
 }
