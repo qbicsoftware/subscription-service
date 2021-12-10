@@ -31,12 +31,17 @@ public class SubscriptionEncoding
     return decode(hash);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws DecodingException in case the decoding could not be performed successfully
+   */
   @Override
-  public CancellationRequest decode(String encodedValue) {
+  public CancellationRequest decode(String encodedValue) throws DecodingException {
     String decodedMessage = new String(getDecoder().decode(encodedValue));
     String[] components = decodedMessage.split(DELIMITER, 0);
     if (!components[2].equals(SECRET)) {
-      throw new RuntimeException("Wrong decoding detected.");
+      throw new DecodingException();
     }
     return new CancellationRequest(components[0], components[1]);
   }
