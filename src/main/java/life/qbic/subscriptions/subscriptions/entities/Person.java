@@ -56,19 +56,19 @@ public class Person {
     this.active = active;
   }
 
-  Integer getId() {
+  public Integer getId() {
     return id;
   }
 
-  void setId(Integer id) {
+  public void setId(Integer id) {
     this.id = id;
   }
 
-  String getUserId() {
+  public String getUserId() {
     return userId;
   }
 
-  void setUserId(String userId) {
+  public void setUserId(String userId) {
     this.userId = userId;
   }
 
@@ -110,6 +110,29 @@ public class Person {
 
   void setActive(Integer active) {
     this.active = active;
+  }
+
+  public List<Subscription> getSubscriptions() {
+    return subscriptions;
+  }
+
+  public void setSubscriptions(
+      List<Subscription> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
+
+  @Override
+  public String toString() {
+    return "Person{" +
+        "id=" + id +
+        ", userId='" + userId + '\'' +
+        ", firstName='" + firstName + '\'' +
+        ", lastName='" + lastName + '\'' +
+        ", title='" + title + '\'' +
+        ", email='" + email + '\'' +
+        ", active=" + active +
+        ", subscriptions=" + subscriptions +
+        '}';
   }
 }
 
