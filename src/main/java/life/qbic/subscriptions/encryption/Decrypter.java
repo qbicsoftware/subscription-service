@@ -11,8 +11,8 @@ public interface Decrypter<I, O> {
   /**
    * Decrypts a message of type {@link I} to a message of type {@link O}
    *
-   * @param encodedValue encoded input type
-   * @return decoded output type
+   * @param message encrypted message
+   * @return original value
    */
-  O decrypt(I encodedValue);
+  O decrypt(I message);
 }

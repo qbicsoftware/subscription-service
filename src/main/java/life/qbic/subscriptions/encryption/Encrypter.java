@@ -11,8 +11,8 @@ public interface Encrypter<I, O> {
   /**
    * Encrypts a message of type {@link I} to a message of type {@link O}
    *
-   * @param input to be encoded
-   * @return encoded output
+   * @param input message to be encrypted
+   * @return encrypted message
    */
   O encrypt(I input);
 }
