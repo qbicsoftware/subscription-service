@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import org.junit.jupiter.api.Test;
 
-class SubscriptionEncodingTests {
+class CancellationEnigmaTests {
 
   private final CancellationRequest expectedRequest =
       new CancellationRequest("QABCD", "test@user.id");
@@ -16,29 +16,29 @@ class SubscriptionEncodingTests {
 
   @Test
   void encode() {
-    RequestEncrypter encoder = new SubscriptionEncoding(secret, salt);
+    RequestEncrypter encoder = new CancellationEnigma(secret, salt);
     assertEquals(encodedString, encoder.encryptCancellationRequest(expectedRequest));
   }
 
   @Test
   void encodeAndDecodeAreInSync() {
-    SubscriptionEncoding subscriptionEncoding = new SubscriptionEncoding("1234567890123456", salt);
+    CancellationEnigma cancellationEnigma = new CancellationEnigma("1234567890123456", salt);
     assertEquals(
         expectedRequest,
-        subscriptionEncoding.decryptCancellationRequest(
-            subscriptionEncoding.encryptCancellationRequest(expectedRequest)));
+        cancellationEnigma.decryptCancellationRequest(
+            cancellationEnigma.encryptCancellationRequest(expectedRequest)));
   }
 
   @Test
   void decode() {
-    RequestDecrypter decoder = new SubscriptionEncoding(secret, salt);
+    RequestDecrypter decoder = new CancellationEnigma(secret, salt);
     assertEquals(expectedRequest, decoder.decryptCancellationRequest(encodedString));
   }
 
   /*Decode throws Exception for non-matching secret*/
   @Test
   void decodeThrowsExceptionForNonMatchingSecret() {
-    RequestDecrypter decoder = new SubscriptionEncoding("1234567890123456", salt);
+    RequestDecrypter decoder = new CancellationEnigma("1234567890123456", salt);
     assertThrows(
         EncryptionException.class, () -> decoder.decryptCancellationRequest(encodedString));
   }

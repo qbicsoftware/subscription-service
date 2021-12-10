@@ -21,26 +21,36 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * <b><short description></b>
+ * <b>Cancellation Enigma</b>
  *
- * <p><detailed description>
+ * <p>Decides how {@link CancellationRequest}s are encrypted and decrypted. This class provides
+ * direct methods for decryption and encryption, as well as, functional implementations to be used to
+ * encrypt and decrypt {@link CancellationRequest}s</p>
  *
- * @since <version tag>
+ * @since 1.0.0
  */
-public class SubscriptionEncoding implements RequestDecrypter, RequestEncrypter {
+public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
 
-  private static final Logger log = LogManager.getLogger(SubscriptionEncoding.class);
+  private static final Logger log = LogManager.getLogger(CancellationEnigma.class);
 
   private final String SECRET;
   private final String SALT;
   private static final String DELIMITER = " ";
 
-  public final Encrypter<CancellationRequest, String> encrypter = this::encrypt;
-  public final Decrypter<String, CancellationRequest> decrypter = this::decrypt;
+  private final Encrypter<CancellationRequest, String> encrypter = this::encrypt;
+  private final Decrypter<String, CancellationRequest> decrypter = this::decrypt;
 
-  public SubscriptionEncoding( @Value("encryption.secret") String secret, @Value("encryption.salt") String salt) {
+  public CancellationEnigma( @Value("encryption.secret") String secret, @Value("encryption.salt") String salt) {
     SECRET = secret;
     SALT = salt;
+  }
+
+  public Encrypter<CancellationRequest, String> getEncrypter() {
+    return encrypter;
+  }
+
+  public Decrypter<String, CancellationRequest> getDecrypter() {
+    return decrypter;
   }
 
   @Override
