@@ -34,8 +34,8 @@ public class SubscriptionEncoding implements RequestDecrypter, RequestEncrypter 
   private final String SALT;
   private static final String DELIMITER = " ";
 
-  private final Encrypter<CancellationRequest, String> encrypter = this::encrypt;
-  private final Decrypter<String, CancellationRequest> decrypter = this::decrypt;
+  public final Encrypter<CancellationRequest, String> encrypter = this::encrypt;
+  public final Decrypter<String, CancellationRequest> decrypter = this::decrypt;
 
   public SubscriptionEncoding(String secret, String salt) {
     SECRET = secret;
