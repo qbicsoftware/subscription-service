@@ -1,12 +1,11 @@
 package life.qbic.subscriptions.encoding;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
 class SubscriptionEncodingTests {
 
   private final CancellationRequest expectedRequest =
@@ -18,6 +17,13 @@ class SubscriptionEncodingTests {
   void decode() {
     Decoder<String, CancellationRequest> decoder = new SubscriptionEncoding(secret);
     assertEquals(expectedRequest, decoder.decode(encodedString));
+  }
+
+  /*Decode throws Exception for non-matching secret*/
+  @Test
+  void decodeThrowsExceptionForNonMatchingSecret() {
+    Decoder<String, CancellationRequest> decoder = new SubscriptionEncoding(secret + "ABCD");
+    assertThrows(DecodingException.class, () -> decoder.decode(encodedString));
   }
 
   @Test
