@@ -56,19 +56,19 @@ public class Person {
     this.active = active;
   }
 
-  Integer getId() {
+  public Integer getId() {
     return id;
   }
 
-  void setId(Integer id) {
+  public void setId(Integer id) {
     this.id = id;
   }
 
-  String getUserId() {
+  public String getUserId() {
     return userId;
   }
 
-  void setUserId(String userId) {
+  public void setUserId(String userId) {
     this.userId = userId;
   }
 

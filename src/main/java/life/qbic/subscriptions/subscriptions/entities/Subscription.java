@@ -3,6 +3,7 @@ package life.qbic.subscriptions.subscriptions.entities;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -22,8 +23,10 @@ public class Subscription {
   @Column(name = "project")
   private String project;
 
-  @ManyToOne(cascade = {CascadeType.DETACH,
-      CascadeType.MERGE, CascadeType.REFRESH, CascadeType.PERSIST})
+  @ManyToOne(
+      fetch = FetchType.LAZY,
+      cascade = {CascadeType.DETACH, CascadeType.MERGE,
+          CascadeType.REFRESH, CascadeType.PERSIST})
   @JoinColumn(name = "user_id")
   private Person person;
 
