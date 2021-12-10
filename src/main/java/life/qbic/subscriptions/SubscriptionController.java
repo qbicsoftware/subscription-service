@@ -3,6 +3,7 @@ package life.qbic.subscriptions;
 import life.qbic.subscriptions.encoding.RequestDecoder;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,11 @@ public class SubscriptionController {
 
   SubscriptionRepository subscriptionRepository;
 
+  @Autowired
+  SubscriptionController(SubscriptionRepository subscriptionRepository) {
+    this.subscriptionRepository = subscriptionRepository;
+  }
+
   @RequestMapping(value = "/cancel/request", method = RequestMethod.GET)
   public ResponseEntity<String> getCancellationRequestHash(
       @RequestBody CancellationRequest cancellationRequest) {
@@ -32,14 +38,16 @@ public class SubscriptionController {
   public ResponseEntity<CancellationRequest> cancelSubscription(
       @PathVariable(value = "hash") String requestHash) {
     var cancellationRequest = decryptRequest(requestHash);
-    removeSubscription(cancellationRequest);
+    removeSubscription(new CancellationRequest("QHOME", "sven.fillinger@qbic.uni-tuebingen.de"));
     return new ResponseEntity<>(cancellationRequest, HttpStatus.ACCEPTED);
   }
 
   private void removeSubscription(CancellationRequest request) {
+    System.out.println("Removing subscription");
     try {
       subscriptionRepository.cancelSubscription(request);
     } catch (Exception e) {
+      System.out.println(e);
       throw new CancellationFailure("Unexpected failure.");
     }
   }
