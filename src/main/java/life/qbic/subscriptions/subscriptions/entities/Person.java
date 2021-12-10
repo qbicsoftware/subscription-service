@@ -111,5 +111,28 @@ public class Person {
   void setActive(Integer active) {
     this.active = active;
   }
+
+  public List<Subscription> getSubscriptions() {
+    return subscriptions;
+  }
+
+  public void setSubscriptions(
+      List<Subscription> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
+
+  @Override
+  public String toString() {
+    return "Person{" +
+        "id=" + id +
+        ", userId='" + userId + '\'' +
+        ", firstName='" + firstName + '\'' +
+        ", lastName='" + lastName + '\'' +
+        ", title='" + title + '\'' +
+        ", email='" + email + '\'' +
+        ", active=" + active +
+        ", subscriptions=" + subscriptions +
+        '}';
+  }
 }
 

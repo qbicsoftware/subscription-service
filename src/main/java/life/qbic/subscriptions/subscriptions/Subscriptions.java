@@ -4,7 +4,9 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import life.qbic.subscriptions.subscriptions.entities.Person;
 import life.qbic.subscriptions.subscriptions.entities.Subscription;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,31 +20,40 @@ import org.springframework.stereotype.Component;
 @Component
 class Subscriptions implements SubscriptionRepository {
 
-  private final Configuration configuration;
+  private final DBConfiguration configuration;
 
   private SessionFactory sessionFactory;
 
   @Autowired
-  Subscriptions(Configuration config) {
+  Subscriptions(DBConfiguration config) {
     this.configuration = config;
   }
 
   @PostConstruct
   void init() {
-    var config = new org.hibernate.cfg.Configuration();
-    var properties = new Properties();
-    config.setProperty(Environment.DRIVER, configuration.driver);
-    config.setProperty(Environment.URL, configuration.url);
-    config.setProperty(Environment.USER, configuration.user);
-    config.setProperty(Environment.PASS, configuration.password);
-    config.setProperty(Environment.POOL_SIZE, "1");
-    config.setProperty(Environment.DIALECT, configuration.sqlDialect);
-    config.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+    Configuration config = new Configuration();
+    Properties properties = new Properties();
+    System.out.println(configuration);
+    //properties.setProperty(Environment.DRIVER, configuration.driver);
+    properties.setProperty(Environment.URL, configuration.url);
+    properties.setProperty(Environment.USER, configuration.user);
+    properties.setProperty(Environment.PASS, configuration.password);
+    properties.setProperty(Environment.POOL_SIZE, "1");
+    properties.setProperty(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+    System.out.println(properties);
     config.setProperties(properties);
     sessionFactory = config
         .addAnnotatedClass(Person.class)
         .addAnnotatedClass(Subscription.class)
         .buildSessionFactory();
+
+    try(Session session = sessionFactory.getCurrentSession()) {
+      session.beginTransaction();
+      Subscription subscription = session.get(Subscription.class, 1);
+      System.out.println(subscription);
+      System.out.println(subscription.getPerson());
+      session.getTransaction().commit();
+    }
   }
 
   /**
