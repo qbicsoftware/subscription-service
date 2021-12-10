@@ -18,6 +18,7 @@ import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * <b><short description></b>
@@ -37,7 +38,7 @@ public class SubscriptionEncoding implements RequestDecrypter, RequestEncrypter 
   public final Encrypter<CancellationRequest, String> encrypter = this::encrypt;
   public final Decrypter<String, CancellationRequest> decrypter = this::decrypt;
 
-  public SubscriptionEncoding(String secret, String salt) {
+  public SubscriptionEncoding( @Value("encryption.secret") String secret, @Value("encryption.salt") String salt) {
     SECRET = secret;
     SALT = salt;
   }
