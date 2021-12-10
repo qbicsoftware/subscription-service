@@ -96,7 +96,6 @@ public class SubscriptionEncoding implements RequestDecrypter, RequestEncrypter 
   }
 
   private static AlgorithmParameterSpec initVector(String salt) {
-
     byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
     if (saltBytes.length < 16) {
       throw new RuntimeException("Salt is insufficient. I need at least 16 bytes");
@@ -107,6 +106,10 @@ public class SubscriptionEncoding implements RequestDecrypter, RequestEncrypter 
   }
 
   private static Key secretKey(String key) {
-    return new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+    byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
+    if (keyBytes.length != 16) {
+      throw new RuntimeException("Key is insufficient. I need 16 bytes.");
+    }
+    return new SecretKeySpec(keyBytes, "AES");
   }
 }
