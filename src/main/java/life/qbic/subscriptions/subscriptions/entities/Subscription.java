@@ -1,5 +1,6 @@
 package life.qbic.subscriptions.subscriptions.entities;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+@Schema
 @Entity
 @Table(name = "subscriptions")
 public class Subscription {

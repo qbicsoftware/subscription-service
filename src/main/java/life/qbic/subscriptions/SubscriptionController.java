@@ -1,5 +1,6 @@
 package life.qbic.subscriptions;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import life.qbic.subscriptions.encoding.RequestDecoder;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Subscription", description = "Subscription controller API")
 @RestController
 @RequestMapping("/subscription")
 public class SubscriptionController {
@@ -38,7 +40,7 @@ public class SubscriptionController {
     return new ResponseEntity<>("dkdkdjjj-jjjj", HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/cancel/{hash}")
+  @RequestMapping(value = "/cancel/{hash}", method = RequestMethod.POST)
   public ResponseEntity<CancellationRequest> cancelSubscription(
       @PathVariable(value = "hash") String requestHash) {
     var cancellationRequest = decryptRequest(requestHash);
@@ -88,13 +90,18 @@ public class SubscriptionController {
     return new ResponseEntity<>("Invalid request hash.", HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Helper exception class, to indicate invalid hashes
+   */
   public static class InvalidRequestHashException extends RuntimeException {
-
     public InvalidRequestHashException() {
       super();
     }
   }
 
+  /**
+   * Helper exception class, to indicate failing subscription cancellations requests
+   */
   public static class CancellationFailure extends RuntimeException {
 
     final String reason;
@@ -105,6 +112,9 @@ public class SubscriptionController {
     }
   }
 
+  /**
+   * Helper exception class, to indicate missing request properties
+   */
   public static class MissingPropertyException extends RuntimeException {
 
     final String missingProperty;
