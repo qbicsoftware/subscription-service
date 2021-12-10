@@ -14,5 +14,5 @@ public interface Encrypter<I, O> {
    * @param input to be encoded
    * @return encoded output
    */
-  O encode(I input);
+  O encrypt(I input);
 }

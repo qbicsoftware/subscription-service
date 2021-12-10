@@ -14,5 +14,5 @@ public interface Decrypter<I, O> {
    * @param encodedValue encoded input type
    * @return decoded output type
    */
-  O decode(I encodedValue);
+  O decrypt(I encodedValue);
 }

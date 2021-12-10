@@ -44,13 +44,13 @@ public class SubscriptionEncoding implements RequestDecrypter, RequestEncrypter 
 
   @Override
   public CancellationRequest decryptCancellationRequest(String hash) throws DecryptionException {
-    return decrypter.decode(hash);
+    return decrypter.decrypt(hash);
   }
 
   @Override
   public String encryptCancellationRequest(CancellationRequest cancellationRequest)
       throws EncryptionException {
-    return encrypter.encode(cancellationRequest);
+    return encrypter.encrypt(cancellationRequest);
   }
 
   /**
