@@ -93,7 +93,6 @@ class SubscriptionControllerTest {
     mockMvc.perform(
             post("/subscription/cancel/{encrypted}", encrypted)
                 .with(csrf())
-                .with(httpBasic("ChuckNorris","astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
         )
@@ -112,15 +111,14 @@ class SubscriptionControllerTest {
         .perform(
             post("/subscription/cancel/{encrypted}", encrypted)
                 .with(csrf())
-                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8))
         .andExpect(status().is(400));
   }
 
   @Test
-  @DisplayName("Unauthorized access is rejected")
-  void unauthorizedAccessIsRejected() throws Exception {
+  @DisplayName("encryptCancellationRequest rejects unauthorized access")
+  void encryptCancellationRequestRejectsUnauthorizedAccess() throws Exception {
     var payload = new CancellationRequest("QABCD", "test@user.id");
     var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
@@ -133,14 +131,6 @@ class SubscriptionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .content(json))
-        .andExpect(status().is(401));
-
-    mockMvc
-        .perform(
-            post("/subscription/cancel/{encrypted}", encrypted)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8))
         .andExpect(status().is(401));
   }
 }
