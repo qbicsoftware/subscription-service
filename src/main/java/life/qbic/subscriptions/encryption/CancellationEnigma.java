@@ -122,7 +122,6 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
   }
 
   private static Key secretKey(String key) {
-    System.out.println(key);
     byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
     if (keyBytes.length != 16) {
       throw new RuntimeException(

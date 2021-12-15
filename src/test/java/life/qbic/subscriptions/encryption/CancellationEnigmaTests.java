@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 class CancellationEnigmaTests {
 
   private final CancellationRequest expectedRequest =
-      new CancellationRequest("QABCD", "test@user.id");
-  private final String secret = "aesEncryptionKey";
-  private final String salt = "123456789!1234567";
-  private final String encodedString = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY/a+uGt7Ae0=";
+      new CancellationRequest("QTEST", "sven.fillinger@qbic.uni-tuebingen.de");
+  private final String secret = "G60B8IJ06H7S7YWL";
+  private final String salt = "YY6WWQ2SLDH8CUXQWYBINQRTWXGTUEODNM";
+  private final String encodedString = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA";
 
   @Test
   void encode() {
@@ -40,6 +40,6 @@ class CancellationEnigmaTests {
   void decodeThrowsExceptionForNonMatchingSecret() {
     RequestDecrypter decoder = new CancellationEnigma("1234567890123456", salt);
     assertThrows(
-        EncryptionException.class, () -> decoder.decryptCancellationRequest(encodedString));
+        DecryptionException.class, () -> decoder.decryptCancellationRequest(encodedString));
   }
 }
