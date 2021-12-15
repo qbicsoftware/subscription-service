@@ -1,5 +1,6 @@
 package life.qbic.subscriptions;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -50,6 +51,7 @@ class SubscriptionControllerTest {
 
     mockMvc.perform(
         get("/subscription/cancel")
+            .with(httpBasic("ChuckNorris","astrongpassphrase!"))
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding(StandardCharsets.UTF_8)
             .content(json)
