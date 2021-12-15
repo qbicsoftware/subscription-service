@@ -1,6 +1,8 @@
 package life.qbic.subscriptions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
@@ -52,6 +54,8 @@ class SubscriptionControllerTest {
             .characterEncoding(StandardCharsets.UTF_8)
             .content(json)
         )
-        .andExpect(status().is(200));
+        .andDo(print())
+        .andExpect(status().is(200))
+        .andExpect(content().string(encrypted));
   }
 }
