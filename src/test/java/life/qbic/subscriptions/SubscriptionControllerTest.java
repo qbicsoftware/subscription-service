@@ -104,8 +104,7 @@ class SubscriptionControllerTest {
   @Test
   @DisplayName("decryptCancellationRequest does not work for incorrect input")
   void decryptCancellationRequestDoesNotWorkForIncorrectInput() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    var encrypted = "SomeInvalidToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted))
         .thenThrow(DecryptionException.class);
 
