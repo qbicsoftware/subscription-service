@@ -1,6 +1,5 @@
 package life.qbic.subscriptions.encryption;
 
-import static org.apache.tomcat.util.codec.binary.Base64.encodeBase64String;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -8,6 +7,7 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -17,18 +17,19 @@ import javax.crypto.spec.SecretKeySpec;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * <b>Cancellation Enigma</b>
  *
  * <p>Decides how {@link CancellationRequest}s are encrypted and decrypted. This class provides
- * direct methods for decryption and encryption, as well as, functional implementations to be used to
- * encrypt and decrypt {@link CancellationRequest}s</p>
+ * direct methods for decryption and encryption, as well as, functional implementations to be used
+ * to encrypt and decrypt {@link CancellationRequest}s</p>
  *
  * @since 1.0.0
  */
+@Component
 public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
 
   private static final Logger log = LogManager.getLogger(CancellationEnigma.class);
@@ -40,7 +41,9 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
   private final Encrypter<CancellationRequest, String> encrypter = this::encrypt;
   private final Decrypter<String, CancellationRequest> decrypter = this::decrypt;
 
-  public CancellationEnigma( @Value("encryption.secret") String secret, @Value("encryption.salt") String salt) {
+  public CancellationEnigma(
+      @Value("${encryption.secret}") String secret,
+      @Value("${encryption.salt}") String salt) {
     SECRET = secret;
     SALT = salt;
   }
@@ -73,7 +76,7 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
     try {
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
       cipher.init(Cipher.DECRYPT_MODE, secretKey(SECRET), initVector(SALT));
-      byte[] original = cipher.doFinal(Base64.decodeBase64(encodedValue));
+      byte[] original = cipher.doFinal(Base64.getUrlDecoder().decode(encodedValue));
       String originalValue = new String(original);
       String[] components = originalValue.split(DELIMITER, 0);
       return new CancellationRequest(components[0], components[1]);
@@ -94,7 +97,7 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
       cipher.init(Cipher.ENCRYPT_MODE, secretKey(SECRET), initVector(SALT));
       byte[] encrypted = cipher.doFinal(joinedString.getBytes());
-      return encodeBase64String(encrypted);
+      return Base64.getUrlEncoder().encodeToString(encrypted);
     } catch (InvalidAlgorithmParameterException
         | NoSuchPaddingException
         | IllegalBlockSizeException
@@ -109,7 +112,9 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
   private static AlgorithmParameterSpec initVector(String salt) {
     byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
     if (saltBytes.length < 16) {
-      throw new RuntimeException("Salt is insufficient. I need at least 16 bytes");
+      throw new RuntimeException(
+          String.format("Salt is insufficient. I need at least 16 bytes, but got %s.",
+              saltBytes.length));
     }
     byte[] usedBytes = new byte[16];
     System.arraycopy(saltBytes, 0, usedBytes, 0, usedBytes.length);
@@ -117,9 +122,11 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
   }
 
   private static Key secretKey(String key) {
+    System.out.println(key);
     byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
     if (keyBytes.length != 16) {
-      throw new RuntimeException("Key is insufficient. I need 16 bytes.");
+      throw new RuntimeException(
+          String.format("Key is insufficient. I need 16 bytes, but got %s", keyBytes.length));
     }
     return new SecretKeySpec(keyBytes, "AES");
   }

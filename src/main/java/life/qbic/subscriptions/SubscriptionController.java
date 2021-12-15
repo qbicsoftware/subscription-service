@@ -1,7 +1,10 @@
 package life.qbic.subscriptions;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import life.qbic.subscriptions.encoding.RequestDecoder;
+import life.qbic.subscriptions.encryption.DecryptionException;
+import life.qbic.subscriptions.encryption.EncryptionException;
+import life.qbic.subscriptions.encryption.RequestDecrypter;
+import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
 import org.apache.logging.log4j.LogManager;
@@ -23,28 +26,36 @@ public class SubscriptionController {
 
   private static final Logger log = LogManager.getLogger(SubscriptionController.class);
 
-  RequestDecoder requestDecoder;
+  RequestEncrypter requestEncrypter;
+
+  RequestDecrypter requestDecrypter;
 
   SubscriptionRepository subscriptionRepository;
 
   @Autowired
-  SubscriptionController(SubscriptionRepository subscriptionRepository) {
+  SubscriptionController(
+      SubscriptionRepository subscriptionRepository,
+      RequestDecrypter requestDecrypter,
+      RequestEncrypter requestEncrypter
+      ) {
     this.subscriptionRepository = subscriptionRepository;
+    this.requestDecrypter = requestDecrypter;
+    this.requestEncrypter = requestEncrypter;
   }
 
-  @RequestMapping(value = "/cancel/request", method = RequestMethod.GET)
+  @RequestMapping(value = "/cancel", method = RequestMethod.GET)
   public ResponseEntity<String> getCancellationRequestHash(
       @RequestBody CancellationRequest cancellationRequest) {
     validateRequest(cancellationRequest);
-    //TODO Implement encryption
-    return new ResponseEntity<>("dkdkdjjj-jjjj", HttpStatus.OK);
+    var cancellationRequestHash = requestEncrypter.encryptCancellationRequest(cancellationRequest);
+    return new ResponseEntity<>(cancellationRequestHash, HttpStatus.OK);
   }
 
   @RequestMapping(value = "/cancel/{hash}", method = RequestMethod.POST)
   public ResponseEntity<CancellationRequest> cancelSubscription(
       @PathVariable(value = "hash") String requestHash) {
-    var cancellationRequest = decryptRequest(requestHash);
-    removeSubscription(new CancellationRequest("QHOME", "sven.fillinger@qbic.uni-tuebingen.de"));
+    var cancellationRequest = requestDecrypter.decryptCancellationRequest(requestHash);
+    removeSubscription(cancellationRequest);
     return new ResponseEntity<>(cancellationRequest, HttpStatus.ACCEPTED);
   }
 
@@ -57,11 +68,6 @@ public class SubscriptionController {
     }
   }
 
-  private CancellationRequest decryptRequest(String hash) {
-    // TODO implement decoding
-    return new CancellationRequest("", "");
-  }
-
   private void validateRequest(CancellationRequest cancellationRequest) {
     var project = cancellationRequest.project();
     var userId = cancellationRequest.userId();
@@ -71,6 +77,18 @@ public class SubscriptionController {
     if (userId == null || userId.isBlank()) {
       throw new MissingPropertyException("userId");
     }
+  }
+
+  @ExceptionHandler({EncryptionException.class})
+  private ResponseEntity<String> encryptionException(EncryptionException e) {
+    return new ResponseEntity<>(
+        "Cancellation request generation failed", HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler({DecryptionException.class})
+  private ResponseEntity<String> decryptionException(DecryptionException e) {
+    return new ResponseEntity<>(
+        "Decryption of your request has failed", HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler({CancellationFailure.class})
