@@ -23,11 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * <p>Tests the behaviour of the {@code /subscription} endpoints</p>
  */
 @WebMvcTest(controllers = SubscriptionController.class)
 class SubscriptionControllerTest {
