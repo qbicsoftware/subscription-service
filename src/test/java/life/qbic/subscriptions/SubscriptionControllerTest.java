@@ -117,4 +117,30 @@ class SubscriptionControllerTest {
                 .characterEncoding(StandardCharsets.UTF_8))
         .andExpect(status().is(400));
   }
+
+  @Test
+  @DisplayName("Unauthorized access is rejected")
+  void unauthorizedAccessIsRejected() throws Exception {
+    var payload = new CancellationRequest("QABCD", "test@user.id");
+    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
+
+    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
+
+    mockMvc
+        .perform(
+            get("/subscription/cancel")
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(json))
+        .andExpect(status().is(401));
+
+    mockMvc
+        .perform(
+            post("/subscription/cancel/{encrypted}", encrypted)
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8))
+        .andExpect(status().is(401));
+  }
 }
