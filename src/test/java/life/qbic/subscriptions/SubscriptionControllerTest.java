@@ -1,7 +1,9 @@
 package life.qbic.subscriptions;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,13 +43,13 @@ class SubscriptionControllerTest {
   MockMvc mockMvc;
 
   @Test
-  @DisplayName("get cancellation request for correct input")
-  void getCancellationRequestForCorrectInput() throws Exception {
+  @DisplayName("encryptCancellationRequest works")
+  void encryptCancellationRequestWorks() throws Exception {
     var payload = new CancellationRequest("QABCD", "test@user.id");
     var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
     Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
 
-    String json = String.format("{\"project\":\"%s\", \"userId\":\"%s\"}", payload.project(), payload.userId());
+    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
 
     mockMvc.perform(
         get("/subscription/cancel")
@@ -59,5 +61,26 @@ class SubscriptionControllerTest {
         .andDo(print())
         .andExpect(status().is(200))
         .andExpect(content().string(encrypted));
+  }
+
+  @Test
+  @DisplayName("decryptUnsubscriptionHash works")
+  void decryptUnsubscriptionHashWorks() throws Exception {
+    var payload = new CancellationRequest("QABCD", "test@user.id");
+    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
+
+    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
+
+    mockMvc.perform(
+            post("/subscription/cancel/{encrypted}", encrypted)
+                .with(csrf())
+                .with(httpBasic("ChuckNorris","astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+        )
+        .andDo(print())
+        .andExpect(status().is(202))
+        .andExpect(content().string(json));
   }
 }
