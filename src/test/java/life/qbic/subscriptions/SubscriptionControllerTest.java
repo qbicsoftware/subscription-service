@@ -4,11 +4,11 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import life.qbic.subscriptions.encryption.DecryptionException;
 import life.qbic.subscriptions.encryption.RequestDecrypter;
 import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
@@ -58,9 +58,27 @@ class SubscriptionControllerTest {
             .characterEncoding(StandardCharsets.UTF_8)
             .content(json)
         )
-        .andDo(print())
         .andExpect(status().is(200))
         .andExpect(content().string(encrypted));
+  }
+
+  @Test
+  @DisplayName("encryptCancellationRequest does not work for incorrect input")
+  void encryptCancellationRequestDoesNotWorkForIncorrectInput() throws Exception {
+    var payload = new CancellationRequest("QABCD", "test@user.id");
+    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
+
+    String json = String.format("{\"project\":\"%s\",\"user_id\":\"%s\"}", payload.project(), payload.userId());
+
+    mockMvc.perform(
+            get("/subscription/cancel")
+                .with(httpBasic("ChuckNorris","astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(json)
+        )
+        .andExpect(status().is(400));
   }
 
   @Test
@@ -79,8 +97,25 @@ class SubscriptionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
         )
-        .andDo(print())
         .andExpect(status().is(202))
         .andExpect(content().string(json));
+  }
+
+  @Test
+  @DisplayName("decryptCancellationRequest does not work for incorrect input")
+  void decryptCancellationRequestDoesNotWorkForIncorrectInput() throws Exception {
+    var payload = new CancellationRequest("QABCD", "test@user.id");
+    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted))
+        .thenThrow(DecryptionException.class);
+
+    mockMvc
+        .perform(
+            post("/subscription/cancel/{encrypted}", encrypted)
+                .with(csrf())
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8))
+        .andExpect(status().is(400));
   }
 }
