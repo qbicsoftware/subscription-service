@@ -10,9 +10,5 @@
       "type": "java.lang.String",
       "description": "Some salt to be added to the initial vector."
     }
-<<<<<<< HEAD
-  ]}
-=======
-  ]}
-  
->>>>>>> development
+  ]
+}
