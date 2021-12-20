@@ -10,10 +10,10 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>life.qbic</groupId>
-  <artifactId>spring-boot-rest-template</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <artifactId>subscription-service</artifactId>
+  <version>1.0.0-rc.1-SNAPSHOT</version>
   <name>spring-boot-rest-template</name>
-  <description>spring-boot-rest-template</description>
+  <description>A REST service to handle project subscriptions</description>
   <properties>
     <java.version>17</java.version>
   </properties>
