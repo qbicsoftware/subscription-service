@@ -1,5 +1,13 @@
 package life.qbic.subscriptions;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import life.qbic.subscriptions.encryption.DecryptionException;
 import life.qbic.subscriptions.encryption.EncryptionException;
@@ -19,7 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Subscription", description = "Subscription controller API")
+@Tag(name = "Subscription", description = "Subscription API")
+@SecurityScheme(name = "basic", type = SecuritySchemeType.HTTP, scheme = "basic")
 @RestController
 @RequestMapping("/subscription")
 public class SubscriptionController {
@@ -37,23 +46,51 @@ public class SubscriptionController {
       SubscriptionRepository subscriptionRepository,
       RequestDecrypter requestDecrypter,
       RequestEncrypter requestEncrypter
-      ) {
+  ) {
     this.subscriptionRepository = subscriptionRepository;
     this.requestDecrypter = requestDecrypter;
     this.requestEncrypter = requestEncrypter;
   }
 
+  @Operation(summary = "Request a subscription cancel token",
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Subscription cancel token",
+              content = @Content(mediaType = "text/plain", schema = @Schema(example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"))
+          ),
+          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request might not be correct.",
+              content = @Content(mediaType = "text/plain")
+          ),
+          @ApiResponse(responseCode = "401", description = "Full authentication required.",
+              content = @Content(mediaType = "text/plain")
+          )
+      })
+  @SecurityRequirement(name = "basic")
   @RequestMapping(value = "/cancel", method = RequestMethod.GET)
   public ResponseEntity<String> getCancellationRequestHash(
       @RequestBody CancellationRequest cancellationRequest) {
     validateRequest(cancellationRequest);
-    var cancellationRequestHash = requestEncrypter.encryptCancellationRequest(cancellationRequest);
-    return new ResponseEntity<>(cancellationRequestHash, HttpStatus.OK);
+    var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
+    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
   }
 
-  @RequestMapping(value = "/cancel/{hash}", method = RequestMethod.POST)
+  @Operation(summary = "Cancel a subscription",
+      parameters = {
+          @Parameter(name = "token",
+              description = "The token of an encrypted cancel request.",
+              example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
+      },
+      responses = {
+          @ApiResponse(responseCode = "202", description = "Subscription cancelled, token accepted.",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = CancellationRequest.class))
+          ),
+          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
+              content = @Content(mediaType = "text/plain")
+          )
+      })
+  @RequestMapping(value = "/cancel/{token}", method = RequestMethod.POST)
   public ResponseEntity<CancellationRequest> cancelSubscription(
-      @PathVariable(value = "hash") String requestHash) {
+      @PathVariable(value = "token") String requestHash) {
     var cancellationRequest = requestDecrypter.decryptCancellationRequest(requestHash);
     removeSubscription(cancellationRequest);
     return new ResponseEntity<>(cancellationRequest, HttpStatus.ACCEPTED);
@@ -112,6 +149,7 @@ public class SubscriptionController {
    * Helper exception class, to indicate invalid hashes
    */
   public static class InvalidRequestHashException extends RuntimeException {
+
     public InvalidRequestHashException() {
       super();
     }
