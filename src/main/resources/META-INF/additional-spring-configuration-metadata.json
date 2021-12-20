@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "encryption.secret",
+      "type": "java.lang.String",
+      "description": "The key that should be used to encrypt and decrypt unsubscription links."
+    },
+    {
+      "name": "encryption.salt",
+      "type": "java.lang.String",
+      "description": "Some salt to be added to the initial vector."
+    }
+  ]
+}
