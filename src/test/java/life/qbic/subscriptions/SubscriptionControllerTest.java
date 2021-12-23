@@ -66,7 +66,9 @@ class SubscriptionControllerTest {
     var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
     Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
 
-    String json = String.format("{\"project\":\"%s\",\"user_id\":\"%s\"}", payload.project(), payload.userId());
+    String invalidUserId = String.format("{\"project\":\"%s\",\"user_id\":\"%s\"}", payload.project(), payload.userId());
+    String invalidProject = String.format("{\"Project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
+
 
     mockMvc.perform(
             get("/subscription/cancel")
@@ -74,6 +76,15 @@ class SubscriptionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .content(json)
+        )
+        .andExpect(status().is(400));
+
+    mockMvc.perform(
+            get("/subscription/cancel")
+                .with(httpBasic("ChuckNorris","astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(invalidProject)
         )
         .andExpect(status().is(400));
   }
