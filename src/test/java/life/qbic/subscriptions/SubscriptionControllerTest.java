@@ -154,16 +154,13 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("Return UnprocessableEntity for erroneous SubscriptionRepository")
-  void throwCancellationFailureForErroneousSubscriptionRepository() throws Exception {
+  @DisplayName("UnprocessableEntity for erroneous SubscriptionRepository")
+  void unprocessableEntityForErroneousSubscriptionRepository() throws Exception {
     var payload = new CancellationRequest("QABCD", "test@user.id");
     var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
     Mockito.doThrow(new RuntimeException("Some test exception in subscription repo."))
         .when(subscriptionRepository).cancelSubscription(payload);
-
-
-    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
 
     mockMvc.perform(
             post("/subscription/cancel/{encrypted}", encrypted)
@@ -172,5 +169,28 @@ class SubscriptionControllerTest {
                 .characterEncoding(StandardCharsets.UTF_8)
         )
         .andExpect(status().isUnprocessableEntity());
+  }
+
+  @Test
+  @DisplayName("BadRequest for unprocessable input with valid format")
+  void badRequestForUnprocessableInputWithValidFormat() throws Exception {
+
+    var validButUnprocessableEntity = new CancellationRequest("some code", "some user id");
+    Mockito.when(requestEncrypter.encryptCancellationRequest(validButUnprocessableEntity))
+        .thenThrow(new EncryptionException());
+
+    String validButUnprocessableJson =
+        String.format(
+            "{\"project\":\"%s\",\"userId\":\"%s\"}",
+            validButUnprocessableEntity.project(), validButUnprocessableEntity.userId());
+
+    mockMvc.perform(
+            get("/subscription/cancel")
+                .with(httpBasic("ChuckNorris","astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(validButUnprocessableJson)
+        )
+        .andExpect(status().isBadRequest());
   }
 }
