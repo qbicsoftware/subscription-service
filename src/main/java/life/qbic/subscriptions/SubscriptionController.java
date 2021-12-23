@@ -45,8 +45,7 @@ public class SubscriptionController {
   SubscriptionController(
       SubscriptionRepository subscriptionRepository,
       RequestDecrypter requestDecrypter,
-      RequestEncrypter requestEncrypter
-  ) {
+      RequestEncrypter requestEncrypter) {
     this.subscriptionRepository = subscriptionRepository;
     this.requestDecrypter = requestDecrypter;
     this.requestEncrypter = requestEncrypter;
@@ -86,6 +85,9 @@ public class SubscriptionController {
           ),
           @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
               content = @Content(mediaType = "text/plain")
+          ),
+          @ApiResponse(responseCode = "422", description = "Unprocessable entity. Your cancellation request was not successful.",
+            content = @Content(mediaType = "text/plain")
           )
       })
   @RequestMapping(value = "/cancel/{token}", method = RequestMethod.POST)
@@ -131,7 +133,7 @@ public class SubscriptionController {
   @ExceptionHandler({CancellationFailure.class})
   private ResponseEntity<String> cancellationFailure(CancellationFailure e) {
     return new ResponseEntity<>(
-        "Subscription could not be cancelled. Reason: " + e.reason, HttpStatus.BAD_REQUEST);
+        "Subscription could not be cancelled. Reason: " + e.reason, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
   @ExceptionHandler({MissingPropertyException.class})
