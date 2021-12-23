@@ -22,10 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Subscription", description = "Subscription API")
@@ -65,7 +66,7 @@ public class SubscriptionController {
           )
       })
   @SecurityRequirement(name = "basic")
-  @RequestMapping(value = "/cancel", method = RequestMethod.GET)
+  @GetMapping(value = "/cancel")
   public ResponseEntity<String> getCancellationRequestHash(
       @RequestBody CancellationRequest cancellationRequest) {
     validateRequest(cancellationRequest);
@@ -73,7 +74,7 @@ public class SubscriptionController {
     return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
   }
 
-/*  @Operation(summary = "Request a subscription cancel token",
+  @Operation(summary = "Request a subscription cancel token",
       responses = {
           @ApiResponse(responseCode = "200", description = "Subscription cancel token",
               content = @Content(mediaType = "text/plain", schema = @Schema(example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"))
@@ -92,7 +93,7 @@ public class SubscriptionController {
     validateRequest(cancellationRequest);
     var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
     return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
-  }*/
+  }
 
   @Operation(summary = "Cancel a subscription",
       parameters = {
@@ -112,7 +113,7 @@ public class SubscriptionController {
             content = @Content(mediaType = "text/plain")
           )
       })
-  @RequestMapping(value = "/cancel/{token}", method = RequestMethod.POST)
+  @PostMapping(value = "/cancel/{token}")
   public ResponseEntity<CancellationRequest> cancelSubscription(
       @PathVariable(value = "token") String requestHash) {
     var cancellationRequest = requestDecrypter.decryptCancellationRequest(requestHash);
