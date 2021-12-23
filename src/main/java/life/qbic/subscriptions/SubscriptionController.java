@@ -73,6 +73,27 @@ public class SubscriptionController {
     return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
   }
 
+/*  @Operation(summary = "Request a subscription cancel token",
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Subscription cancel token",
+              content = @Content(mediaType = "text/plain", schema = @Schema(example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"))
+          ),
+          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request might not be correct.",
+              content = @Content(mediaType = "text/plain")
+          ),
+          @ApiResponse(responseCode = "401", description = "Full authentication required.",
+              content = @Content(mediaType = "text/plain")
+          )
+      })
+  @SecurityRequirement(name = "basic")
+  @PostMapping(value = "/cancel/token/generate")
+  public ResponseEntity<String> generateCancellationToken (
+      @RequestBody CancellationRequest cancellationRequest) {
+    validateRequest(cancellationRequest);
+    var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
+    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
+  }*/
+
   @Operation(summary = "Cancel a subscription",
       parameters = {
           @Parameter(name = "token",
@@ -120,13 +141,13 @@ public class SubscriptionController {
   }
 
   @ExceptionHandler({EncryptionException.class})
-  private ResponseEntity<String> encryptionException(EncryptionException e) {
+  private ResponseEntity<String> encryptionException() {
     return new ResponseEntity<>(
         "Cancellation request generation failed", HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler({DecryptionException.class})
-  private ResponseEntity<String> decryptionException(DecryptionException e) {
+  private ResponseEntity<String> decryptionException() {
     return new ResponseEntity<>(
         "Decryption of your request has failed", HttpStatus.BAD_REQUEST);
   }
