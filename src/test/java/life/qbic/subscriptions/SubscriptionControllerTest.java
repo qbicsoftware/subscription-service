@@ -75,7 +75,7 @@ class SubscriptionControllerTest {
                 .with(httpBasic("ChuckNorris","astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
-                .content(json)
+                .content(invalidUserId)
         )
         .andExpect(status().is(400));
 
