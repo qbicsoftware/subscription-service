@@ -142,21 +142,6 @@ public class SubscriptionController {
         "Missing content for required property: " + e.missingProperty, HttpStatus.BAD_REQUEST);
   }
 
-  @ExceptionHandler({InvalidRequestHashException.class})
-  private ResponseEntity<String> invalidHash(InvalidRequestHashException e) {
-    return new ResponseEntity<>("Invalid request hash.", HttpStatus.BAD_REQUEST);
-  }
-
-  /**
-   * Helper exception class, to indicate invalid hashes
-   */
-  public static class InvalidRequestHashException extends RuntimeException {
-
-    public InvalidRequestHashException() {
-      super();
-    }
-  }
-
   /**
    * Helper exception class, to indicate failing subscription cancellations requests
    */
