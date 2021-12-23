@@ -38,7 +38,7 @@ class SubscriptionControllerTest {
 
   @ParameterizedTest
   @CsvSource(value = {"project, user_id", "Project, userId"})
-  @DisplayName("When invalid input is provided, GET /cancel responds BadRequest")
+  @DisplayName("When invalid input is provided, GET /cancel responds BAD_REQUEST")
   void whenInvalidInputIsProvidedGetCancelRespondsBadRequest(
       String invalidProjectTag, String invalidUserTag) throws Exception {
     String invalidObject =
@@ -56,7 +56,7 @@ class SubscriptionControllerTest {
 
   @ParameterizedTest
   @CsvSource(value = {"project, user_id", "Project, userId"})
-  @DisplayName("When invalid input is provided, POST /cancel/token/generateresponds BadRequest")
+  @DisplayName("When invalid input is provided, POST /cancel/token/generate responds BAD_REQUEST")
   void whenInvalidInputIsProvidedPostCancelTokenGenerateRespondsBadRequest(
       String invalidProjectTag, String invalidUserTag) throws Exception {
     String invalidObject =
@@ -73,7 +73,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When valid input is provided, GET /cancel responds Ok")
+  @DisplayName("When valid input is provided, GET /cancel responds OK")
   void whenValidInputIsProvidedGetCancelRespondsOk() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     var encrypted = "validToken";
@@ -95,7 +95,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When valid input is provided, POST /cancel/token/generateresponds Ok")
+  @DisplayName("When valid input is provided, POST /cancel/token/generate responds OK")
   void whenValidInputIsProvidedPostCancelTokenGenerateRespondsOk() throws Exception {
     var payload = new CancellationRequest("validProject", "validEmail");
     var encrypted = "thisIsAValidToken";
@@ -117,7 +117,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When valid input is provided, POST /cancel responds Accepted")
+  @DisplayName("When valid input is provided, POST /cancel responds ACCEPTED")
   void whenValidInputIsProvidedPostCancelRespondsAccepted() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     var encrypted = "validToken";
@@ -138,7 +138,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When authorization is missing, GET /cancel responds Unauthorized")
+  @DisplayName("When authorization is missing, GET /cancel responds UNAUTHORIZED")
   void whenAuthorizationIsMissingGetCancelRespondsUnauthorized() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     String json =
@@ -156,7 +156,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When authorization is missing, POST /cancel/token/generateresponds Unauthorized")
+  @DisplayName("When authorization is missing, POST /cancel/token/generate responds UNAUTHORIZED")
   void whenAuthorizationIsMissingPostCancelTokenGenerateRespondsUnauthorized() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     String json =
@@ -175,7 +175,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When authorization credentials are wrong, GET /cancel responds Unauthorized")
+  @DisplayName("When authorization credentials are wrong, GET /cancel responds UNAUTHORIZED")
   void whenAuthorizationCredentialsAreWrongGetCancelRespondsUnauthorized() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     String json =
@@ -193,7 +193,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When authorization credentials are wrong, POST /cancel/token/generateresponds Unauthorized")
+  @DisplayName("When authorization credentials are wrong, POST /cancel/token/generate responds UNAUTHORIZED")
   void whenAuthorizationCredentialsAreWrongPostCancelTokenGenerateRespondsUnauthorized() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     String json =
@@ -212,7 +212,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When encryption fails, GET /cancel responds BadRequest")
+  @DisplayName("When encryption fails, GET /cancel responds BAD_REQUEST")
   void whenEncryptionFailsGetCancelRespondsBadRequest() throws Exception {
     var validEntity = new CancellationRequest("some code", "some user id");
     Mockito.when(requestEncrypter.encryptCancellationRequest(validEntity))
@@ -233,7 +233,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When encryption fails, POST /cancel/token/generateresponds BadRequest")
+  @DisplayName("When encryption fails, POST 'cancel/token/generate' responds BAD_REQUEST")
   void whenEncryptionFailsPostCancelTokenGenerateRespondsBadRequest() throws Exception {
     var validEntity = new CancellationRequest("some code", "some user id");
     Mockito.when(requestEncrypter.encryptCancellationRequest(validEntity))
@@ -254,7 +254,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When decryption fails, POST /cancel responds BadRequest")
+  @DisplayName("When decryption fails, POST /cancel responds BAD_REQUEST")
   void whenDecryptionFailsPostCancelRespondsBadRequest() throws Exception {
     var validButUnprocessableToken = "validButUnprocessableToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(validButUnprocessableToken))
@@ -270,7 +270,7 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When data access fails, POST /cancel responds UnprocessableEntity")
+  @DisplayName("When data access fails, POST /cancel responds UNPROCESSABLE_ENTITY")
   void whenDataAccessFailsPostCancelRespondsUnprocessableEntity() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     var encrypted = "validToken";
