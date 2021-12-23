@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import life.qbic.subscriptions.encryption.DecryptionException;
+import life.qbic.subscriptions.encryption.EncryptionException;
 import life.qbic.subscriptions.encryption.RequestDecrypter;
 import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
@@ -42,8 +43,8 @@ class SubscriptionControllerTest {
   @Test
   @DisplayName("encryptCancellationRequest works")
   void encryptCancellationRequestWorks() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
 
     String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
@@ -62,8 +63,8 @@ class SubscriptionControllerTest {
   @Test
   @DisplayName("encryptCancellationRequest does not work for incorrect input")
   void encryptCancellationRequestDoesNotWorkForIncorrectInput() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
 
     String invalidUserId = String.format("{\"project\":\"%s\",\"user_id\":\"%s\"}", payload.project(), payload.userId());
@@ -92,8 +93,8 @@ class SubscriptionControllerTest {
   @Test
   @DisplayName("decryptUnsubscriptionHash works")
   void decryptUnsubscriptionHashWorks() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
 
     String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
@@ -127,8 +128,8 @@ class SubscriptionControllerTest {
   @Test
   @DisplayName("encryptCancellationRequest rejects unauthorized access")
   void encryptCancellationRequestRejectsUnauthorizedAccess() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
 
     String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
@@ -156,8 +157,8 @@ class SubscriptionControllerTest {
   @Test
   @DisplayName("UnprocessableEntity for erroneous SubscriptionRepository")
   void unprocessableEntityForErroneousSubscriptionRepository() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
     Mockito.doThrow(new RuntimeException("Some test exception in subscription repo."))
         .when(subscriptionRepository).cancelSubscription(payload);
