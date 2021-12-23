@@ -1,5 +1,7 @@
 package life.qbic.subscriptions;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -15,8 +17,7 @@ import life.qbic.subscriptions.encryption.RequestDecrypter;
 import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/subscription")
 public class SubscriptionController {
 
-  private static final Logger log = LogManager.getLogger(SubscriptionController.class);
+  private static final Logger log = getLogger(SubscriptionController.class);
 
   RequestEncrypter requestEncrypter;
 
@@ -102,7 +103,7 @@ public class SubscriptionController {
     try {
       subscriptionRepository.cancelSubscription(request);
     } catch (Exception e) {
-      log.error(e);
+      log.error(e.getMessage(), e);
       throw new CancellationFailure("Unexpected failure.");
     }
   }
