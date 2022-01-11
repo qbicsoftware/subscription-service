@@ -54,6 +54,24 @@ public class SubscriptionController {
     this.requestEncrypter = requestEncrypter;
   }
 
+  @Operation(summary = "Cancel a subscription",
+      parameters = {
+          @Parameter(name = "token",
+              description = "The token of an encrypted cancel request.",
+              example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
+      },
+      responses = {
+          @ApiResponse(responseCode = "202", description = "Subscription cancelled, token accepted.",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = CancellationRequest.class))
+          ),
+          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
+              content = @Content(mediaType = "text/plain")
+          ),
+          @ApiResponse(responseCode = "422", description = "Unprocessable entity. Your cancellation request was not successful.",
+              content = @Content(mediaType = "text/plain")
+          )
+      })
   @SecurityRequirement(name = "basic")
   @DeleteMapping(value = "/{token}")
   public ResponseEntity<String> cancelSubscriptionByToken(@PathVariable String token) {
@@ -102,32 +120,6 @@ public class SubscriptionController {
     validateRequest(cancellationRequest);
     var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
     return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
-  }
-
-  @Operation(summary = "Cancel a subscription",
-      parameters = {
-          @Parameter(name = "token",
-              description = "The token of an encrypted cancel request.",
-              example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
-      },
-      responses = {
-          @ApiResponse(responseCode = "202", description = "Subscription cancelled, token accepted.",
-              content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = CancellationRequest.class))
-          ),
-          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
-              content = @Content(mediaType = "text/plain")
-          ),
-          @ApiResponse(responseCode = "422", description = "Unprocessable entity. Your cancellation request was not successful.",
-            content = @Content(mediaType = "text/plain")
-          )
-      })
-  @PostMapping(value = "/cancel/{token}")
-  public ResponseEntity<CancellationRequest> cancelSubscription(
-      @PathVariable(value = "token") String requestHash) {
-    var cancellationRequest = requestDecrypter.decryptCancellationRequest(requestHash);
-    removeSubscription(cancellationRequest);
-    return new ResponseEntity<>(cancellationRequest, HttpStatus.ACCEPTED);
   }
 
   private void removeSubscription(CancellationRequest request) {

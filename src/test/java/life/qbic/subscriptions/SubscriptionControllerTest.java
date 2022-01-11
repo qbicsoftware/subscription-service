@@ -1,6 +1,5 @@
 package life.qbic.subscriptions;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -124,27 +123,6 @@ class SubscriptionControllerTest {
     var encrypted = "validToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
     mockMvc.perform(delete("/subscriptions/{token}", encrypted)).andExpect(status().isAccepted());
-  }
-
-  @Test
-  @DisplayName("When valid input is provided, POST /cancel responds ACCEPTED")
-  void whenValidInputIsProvidedPostCancelRespondsAccepted() throws Exception {
-    var payload = new CancellationRequest("validProject", "validUserId");
-    var encrypted = "validToken";
-    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
-
-    String json =
-        String.format(
-            "{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
-
-    mockMvc
-        .perform(
-            post("/subscriptions/cancel/{encrypted}", encrypted)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8))
-        .andExpect(status().isAccepted())
-        .andExpect(content().string(json));
   }
 
   @Test
@@ -286,22 +264,6 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When decryption fails, POST /cancel responds BAD_REQUEST")
-  void whenDecryptionFailsPostCancelRespondsBadRequest() throws Exception {
-    var validButUnprocessableToken = "validButUnprocessableToken";
-    Mockito.when(requestDecrypter.decryptCancellationRequest(validButUnprocessableToken))
-        .thenThrow(new DecryptionException());
-
-    mockMvc
-        .perform(
-            post("/subscriptions/cancel/{encrypted}", validButUnprocessableToken)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
   @DisplayName("When decryption fails, DELETE /subscriptions responds BAD_REQUEST")
   void whenDecryptionFailsDeleteSubscriptionsRespondsBadRequest() throws Exception {
     var validButUnprocessableToken = "validButUnprocessableToken";
@@ -311,25 +273,6 @@ class SubscriptionControllerTest {
     mockMvc
         .perform(delete("/subscriptions/{token}", validButUnprocessableToken))
         .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  @DisplayName("When data access fails, POST /cancel responds UNPROCESSABLE_ENTITY")
-  void whenDataAccessFailsPostCancelRespondsUnprocessableEntity() throws Exception {
-    var payload = new CancellationRequest("validProject", "validUserId");
-    var encrypted = "validToken";
-    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
-    Mockito.doThrow(new RuntimeException("Some test exception in subscription repo."))
-        .when(subscriptionRepository)
-        .cancelSubscription(payload);
-
-    mockMvc
-        .perform(
-            post("/subscriptions/cancel/{encrypted}", encrypted)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8))
-        .andExpect(status().isUnprocessableEntity());
   }
 
   @Test
