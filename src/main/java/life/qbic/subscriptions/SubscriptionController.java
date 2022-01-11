@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Subscription", description = "Subscription API")
 @SecurityScheme(name = "basic", type = SecuritySchemeType.HTTP, scheme = "basic")
 @RestController
-@RequestMapping("/subscription")
+@RequestMapping("/subscriptions")
 public class SubscriptionController {
 
   private static final Logger log = getLogger(SubscriptionController.class);

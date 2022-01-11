@@ -2,6 +2,7 @@ package life.qbic.subscriptions;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -46,7 +47,7 @@ class SubscriptionControllerTest {
             "{\"%s\":\"validProject\",\"%s\":\"validUserId\"}", invalidProjectTag, invalidUserTag);
     mockMvc
         .perform(
-            get("/subscription/cancel")
+            get("/subscriptions/cancel")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -64,7 +65,7 @@ class SubscriptionControllerTest {
             "{\"%s\":\"validProject\",\"%s\":\"validUserId\"}", invalidProjectTag, invalidUserTag);
     mockMvc
         .perform(
-            post("/subscription/cancel/token/generate")
+            post("/subscriptions/cancel/token/generate")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -85,7 +86,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            get("/subscription/cancel")
+            get("/subscriptions/cancel")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -107,7 +108,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/token/generate")
+            post("/subscriptions/cancel/token/generate")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -129,7 +130,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/{encrypted}", encrypted)
+            post("/subscriptions/cancel/{encrypted}", encrypted)
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8))
@@ -147,7 +148,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            get("/subscription/cancel")
+            get("/subscriptions/cancel")
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .content(json))
@@ -165,8 +166,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/token/generate")
-                .with(httpBasic("wrongUser", "wrongPassword"))
+            post("/subscriptions/cancel/token/generate")
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .content(json))
@@ -183,7 +183,7 @@ class SubscriptionControllerTest {
             "{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
     mockMvc
         .perform(
-            get("/subscription/cancel")
+            get("/subscriptions/cancel")
                 .with(httpBasic("wrongUser", "wrongPassword"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -202,7 +202,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/token/generate")
+            post("/subscriptions/cancel/token/generate")
                 .with(httpBasic("wrongUser", "wrongPassword"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -224,7 +224,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            get("/subscription/cancel")
+            get("/subscriptions/cancel")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -245,7 +245,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/token/generate")
+            post("/subscriptions/cancel/token/generate")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
@@ -262,7 +262,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/{encrypted}", validButUnprocessableToken)
+            post("/subscriptions/cancel/{encrypted}", validButUnprocessableToken)
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8))
@@ -281,7 +281,7 @@ class SubscriptionControllerTest {
 
     mockMvc
         .perform(
-            post("/subscription/cancel/{encrypted}", encrypted)
+            post("/subscriptions/cancel/{encrypted}", encrypted)
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8))
