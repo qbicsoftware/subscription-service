@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Subscription", description = "Subscription API")
@@ -61,7 +62,7 @@ public class SubscriptionController {
               example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
       },
       responses = {
-          @ApiResponse(responseCode = "202", description = "Subscription cancelled, token accepted.",
+          @ApiResponse(responseCode = "204", description = "No content. Subscription cancelled, token accepted.",
               content = @Content(mediaType = "application/json",
                   schema = @Schema(implementation = CancellationRequest.class))
           ),
@@ -74,12 +75,33 @@ public class SubscriptionController {
       })
   @SecurityRequirement(name = "basic")
   @DeleteMapping(value = "/{token}")
-  public ResponseEntity<String> cancelSubscriptionByToken(@PathVariable String token) {
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void cancelSubscriptionByToken(@PathVariable String token) {
     var cancellationRequest = requestDecrypter.decryptCancellationRequest(token);
     removeSubscription(cancellationRequest);
-    return new ResponseEntity<>(HttpStatus.ACCEPTED);
   }
-  
+
+  @Operation(summary = "Request a subscription cancel token",
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Subscription cancel token",
+              content = @Content(mediaType = "text/plain", schema = @Schema(example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"))
+          ),
+          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request might not be correct.",
+              content = @Content(mediaType = "text/plain")
+          ),
+          @ApiResponse(responseCode = "401", description = "Full authentication required.",
+              content = @Content(mediaType = "text/plain")
+          )
+      })
+  @SecurityRequirement(name = "basic")
+  @PostMapping(value = "/tokens")
+  public ResponseEntity<String> generateToken(@RequestBody CancellationRequest cancellationRequest) {
+    validateRequest(cancellationRequest);
+    var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
+    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
+  }
+
+
   @Operation(summary = "Request a subscription cancel token",
       responses = {
           @ApiResponse(responseCode = "200", description = "Subscription cancel token",
