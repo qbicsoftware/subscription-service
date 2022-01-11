@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,14 @@ public class SubscriptionController {
     this.requestEncrypter = requestEncrypter;
   }
 
+  @SecurityRequirement(name = "basic")
+  @DeleteMapping(value = "/{token}")
+  public ResponseEntity<String> cancelSubscriptionByToken(@PathVariable String token) {
+    var cancellationRequest = requestDecrypter.decryptCancellationRequest(token);
+    removeSubscription(cancellationRequest);
+    return new ResponseEntity<>(HttpStatus.ACCEPTED);
+  }
+  
   @Operation(summary = "Request a subscription cancel token",
       responses = {
           @ApiResponse(responseCode = "200", description = "Subscription cancel token",
