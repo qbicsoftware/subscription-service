@@ -64,8 +64,8 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When valid input is provided, POST /subscriptions/tokens responds OK")
-  void whenValidInputIsProvidedPostSubscriptionsTokensRespondsOk() throws Exception {
+  @DisplayName("When valid input is provided, POST /subscriptions/tokens responds CREATED")
+  void whenValidInputIsProvidedPostSubscriptionsTokensRespondsCreated() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     var encrypted = "validToken";
     Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
@@ -81,7 +81,7 @@ class SubscriptionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .content(json))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(content().string(encrypted));
   }
 

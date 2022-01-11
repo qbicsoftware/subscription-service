@@ -97,7 +97,7 @@ public class SubscriptionController {
   public ResponseEntity<String> generateToken(@RequestBody CancellationRequest cancellationRequest) {
     validateRequest(cancellationRequest);
     var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
-    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
+    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.CREATED);
   }
 
   private void removeSubscription(CancellationRequest request) {
