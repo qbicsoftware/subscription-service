@@ -56,6 +56,24 @@ class SubscriptionControllerTest {
 
   @ParameterizedTest
   @CsvSource(value = {"project, user_id", "Project, userId"})
+  @DisplayName("When invalid input is provided, POST /subscriptions/tokens responds BAD_REQUEST")
+  void whenInvalidInputIsProvidedPostSubscriptionsTokensRespondsBadRequest(
+      String invalidProjectTag, String invalidUserTag) throws Exception {
+    String invalidObject =
+        String.format(
+            "{\"%s\":\"validProject\",\"%s\":\"validUserId\"}", invalidProjectTag, invalidUserTag);
+    mockMvc
+        .perform(
+            post("/subscriptions/tokens")
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(invalidObject))
+        .andExpect(status().isBadRequest());
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = {"project, user_id", "Project, userId"})
   @DisplayName("When invalid input is provided, POST /cancel/token/generate responds BAD_REQUEST")
   void whenInvalidInputIsProvidedPostCancelTokenGenerateRespondsBadRequest(
       String invalidProjectTag, String invalidUserTag) throws Exception {
@@ -117,12 +135,34 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When valid input is provided, DELETE /subscriptions responds ACCEPTED")
-  void whenValidInputIsProvidedDeleteSubscriptionsRespondsAccepted() throws Exception {
+  @DisplayName("When valid input is provided, DELETE /subscriptions responds NO_CONTENT")
+  void whenValidInputIsProvidedDeleteSubscriptionsRespondsNoContent() throws Exception {
     var payload = new CancellationRequest("validProject", "validUserId");
     var encrypted = "validToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
-    mockMvc.perform(delete("/subscriptions/{token}", encrypted)).andExpect(status().isAccepted());
+    mockMvc.perform(delete("/subscriptions/{token}", encrypted)).andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("When valid input is provided, POST /subscriptions/tokens responds OK")
+  void whenValidInputIsProvidedPostSubscriptionsTokensRespondsOk() throws Exception {
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
+    Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
+
+    String json =
+        String.format(
+            "{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
+
+    mockMvc
+        .perform(
+            post("/subscriptions/tokens")
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(json))
+        .andExpect(status().isOk())
+        .andExpect(content().string(encrypted));
   }
 
   @Test
@@ -162,11 +202,17 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  @DisplayName("When authorization is missing DELETE /subscriptions responds UNAUTHORIZED")
+  @DisplayName("When authorization is missing, DELETE /subscriptions responds UNAUTHORIZED")
   void whenAuthorizationIsMissingDeleteSubscriptionsRespondsUnauthorized() throws Exception {
     // this currently fails as providing no authentificate header passes.
     // Probably problem with auth not with this endpoint
-    mockMvc.perform(delete("/subscriptions/abcd")).andExpect(status().isUnauthorized());
+    mockMvc.perform(delete("/subscriptions/{token}", "someValidToken")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @DisplayName("When authorization is missing, POST /subscriptions/tokens responds UNAUTHORIZED")
+  void whenAuthorizationIsMissingPostSubscriptionsTokensRespondsUnauthorized() throws Exception {
+    mockMvc.perform(post("/subscriptions/tokens")).andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -222,6 +268,16 @@ class SubscriptionControllerTest {
   }
 
   @Test
+  @DisplayName(
+      "When authorization credentials are wrong, POST /subscriptions/tokens responds UNAUTHORIZED")
+  void whenAuthorizationCredentialsAreWrongPostSubscriptionsTokensRespondsUnauthorized()
+      throws Exception {
+    mockMvc
+        .perform(post("/subscriptions/tokens").with(httpBasic("wrongUser", "wrongPasswd")))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
   @DisplayName("When encryption fails, GET /cancel responds BAD_REQUEST")
   void whenEncryptionFailsGetCancelRespondsBadRequest() throws Exception {
     var validEntity = new CancellationRequest("some code", "some user id");
@@ -235,6 +291,27 @@ class SubscriptionControllerTest {
     mockMvc
         .perform(
             get("/subscriptions/cancel")
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(validObject))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("When encryption fails, POST /subscriptions/tokens responds BAD_REQUEST")
+  void whenEncryptionFailsPostSubscriptionsTokensRespondsBadRequest() throws Exception {
+    var validEntity = new CancellationRequest("some code", "some user id");
+    Mockito.when(requestEncrypter.encryptCancellationRequest(validEntity))
+        .thenThrow(new EncryptionException());
+
+    String validObject =
+        String.format(
+            "{\"project\":\"%s\",\"userId\":\"%s\"}", validEntity.project(), validEntity.userId());
+
+    mockMvc
+        .perform(
+            post("/subscriptions/tokens")
                 .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
