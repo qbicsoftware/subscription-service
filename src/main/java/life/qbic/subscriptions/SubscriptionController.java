@@ -82,7 +82,7 @@ public class SubscriptionController {
 
   @Operation(summary = "Request a subscription cancel token",
       responses = {
-          @ApiResponse(responseCode = "200", description = "Subscription cancel token",
+          @ApiResponse(responseCode = "201", description = "Subscription cancel token was created.",
               content = @Content(mediaType = "text/plain", schema = @Schema(example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"))
           ),
           @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request might not be correct.",
