@@ -1,8 +1,7 @@
 package life.qbic.subscriptions;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -10,12 +9,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import life.qbic.subscriptions.encryption.DecryptionException;
+import life.qbic.subscriptions.encryption.EncryptionException;
 import life.qbic.subscriptions.encryption.RequestDecrypter;
 import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -23,122 +25,150 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * <p>Tests the behaviour of the {@code /subscription} endpoints</p>
- */
+/** Tests the behaviour of the {@code /subscriptions} endpoints */
 @WebMvcTest(controllers = SubscriptionController.class)
 class SubscriptionControllerTest {
 
-  @MockBean
-  SubscriptionRepository subscriptionRepository;
-  @MockBean
-  RequestDecrypter requestDecrypter;
-  @MockBean
-  RequestEncrypter requestEncrypter;
+  @MockBean SubscriptionRepository subscriptionRepository;
+  @MockBean RequestDecrypter requestDecrypter;
+  @MockBean RequestEncrypter requestEncrypter;
 
-  @Autowired
-  MockMvc mockMvc;
+  @Autowired MockMvc mockMvc;
+
+  @ParameterizedTest
+  @CsvSource(value = {"project, user_id", "Project, userId"})
+  @DisplayName("When invalid input is provided, POST /subscriptions/tokens responds BAD_REQUEST")
+  void whenInvalidInputIsProvidedPostSubscriptionsTokensRespondsBadRequest(
+      String invalidProjectTag, String invalidUserTag) throws Exception {
+    String invalidObject =
+        String.format(
+            "{\"%s\":\"validProject\",\"%s\":\"validUserId\"}", invalidProjectTag, invalidUserTag);
+    mockMvc
+        .perform(
+            post("/subscriptions/tokens")
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(invalidObject))
+        .andExpect(status().isBadRequest());
+  }
 
   @Test
-  @DisplayName("encryptCancellationRequest works")
-  void encryptCancellationRequestWorks() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+  @DisplayName("When valid input is provided, DELETE /subscriptions responds NO_CONTENT")
+  void whenValidInputIsProvidedDeleteSubscriptionsRespondsNoContent() throws Exception {
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
+    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
+    mockMvc.perform(delete("/subscriptions/{token}", encrypted)).andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("When valid input is provided, POST /subscriptions/tokens responds CREATED")
+  void whenValidInputIsProvidedPostSubscriptionsTokensRespondsCreated() throws Exception {
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
 
-    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
+    String json =
+        String.format(
+            "{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
 
-    mockMvc.perform(
-        get("/subscription/cancel")
-            .with(httpBasic("ChuckNorris","astrongpassphrase!"))
-            .contentType(MediaType.APPLICATION_JSON)
-            .characterEncoding(StandardCharsets.UTF_8)
-            .content(json)
-        )
-        .andExpect(status().is(200))
+    mockMvc
+        .perform(
+            post("/subscriptions/tokens")
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(json))
+        .andExpect(status().isCreated())
         .andExpect(content().string(encrypted));
   }
 
   @Test
-  @DisplayName("encryptCancellationRequest does not work for incorrect input")
-  void encryptCancellationRequestDoesNotWorkForIncorrectInput() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
-    Mockito.when(requestEncrypter.encryptCancellationRequest(payload)).thenReturn(encrypted);
-
-    String json = String.format("{\"project\":\"%s\",\"user_id\":\"%s\"}", payload.project(), payload.userId());
-
-    mockMvc.perform(
-            get("/subscription/cancel")
-                .with(httpBasic("ChuckNorris","astrongpassphrase!"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8)
-                .content(json)
-        )
-        .andExpect(status().is(400));
+  @DisplayName("When authorization is missing, DELETE /subscriptions responds NO CONTENT")
+  void whenAuthorizationIsMissingDeleteSubscriptionsRespondsUnauthorized() throws Exception {
+    mockMvc.perform(delete("/subscriptions/{token}", "someValidToken")).andExpect(status().isNoContent());
   }
 
   @Test
-  @DisplayName("decryptUnsubscriptionHash works")
-  void decryptUnsubscriptionHashWorks() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
-    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
-
-    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
-
-    mockMvc.perform(
-            post("/subscription/cancel/{encrypted}", encrypted)
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8)
-        )
-        .andExpect(status().is(202))
-        .andExpect(content().string(json));
+  @DisplayName("When authorization is missing, POST /subscriptions/tokens responds UNAUTHORIZED")
+  void whenAuthorizationIsMissingPostSubscriptionsTokensRespondsUnauthorized() throws Exception {
+    mockMvc.perform(post("/subscriptions/tokens")).andExpect(status().isUnauthorized());
   }
 
   @Test
-  @DisplayName("decryptCancellationRequest does not work for incorrect input")
-  void decryptCancellationRequestDoesNotWorkForIncorrectInput() throws Exception {
-    var encrypted = "SomeInvalidToken";
-    Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted))
-        .thenThrow(DecryptionException.class);
-
+  @DisplayName(
+      "When authorization credentials are wrong, DELETE /subscriptions responds UNAUTHORIZED")
+  void whenAuthorizationCredentialsAreWrongDeleteSubscriptionsRespondsUnauthorized()
+      throws Exception {
     mockMvc
         .perform(
-            post("/subscription/cancel/{encrypted}", encrypted)
-                .with(csrf())
+            delete("/subscriptions/{token}", "someValidToken")
+                .with(httpBasic("wrongUser", "wrongPassword"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8))
-        .andExpect(status().is(400));
+        .andDo(print())
+        .andExpect(status().isUnauthorized());
   }
 
   @Test
-  @DisplayName("encryptCancellationRequest rejects unauthorized access")
-  void encryptCancellationRequestRejectsUnauthorizedAccess() throws Exception {
-    var payload = new CancellationRequest("QABCD", "test@user.id");
-    var encrypted = "BStOJDfmn0ZyNceOPN3qU2xJw1mQfdbzY_a-uGt7Ae0=";
+  @DisplayName(
+      "When authorization credentials are wrong, POST /subscriptions/tokens responds UNAUTHORIZED")
+  void whenAuthorizationCredentialsAreWrongPostSubscriptionsTokensRespondsUnauthorized()
+      throws Exception {
+    mockMvc
+        .perform(post("/subscriptions/tokens").with(httpBasic("wrongUser", "wrongPasswd")))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @DisplayName("When encryption fails, POST /subscriptions/tokens responds BAD_REQUEST")
+  void whenEncryptionFailsPostSubscriptionsTokensRespondsBadRequest() throws Exception {
+    var validEntity = new CancellationRequest("some code", "some user id");
+    Mockito.when(requestEncrypter.encryptCancellationRequest(validEntity))
+        .thenThrow(new EncryptionException());
+
+    String validObject =
+        String.format(
+            "{\"project\":\"%s\",\"userId\":\"%s\"}", validEntity.project(), validEntity.userId());
+
+    mockMvc
+        .perform(
+            post("/subscriptions/tokens")
+                .with(httpBasic("ChuckNorris", "astrongpassphrase!"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .content(validObject))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("When decryption fails, DELETE /subscriptions responds BAD_REQUEST")
+  void whenDecryptionFailsDeleteSubscriptionsRespondsBadRequest() throws Exception {
+    var validButUnprocessableToken = "validButUnprocessableToken";
+    Mockito.when(requestDecrypter.decryptCancellationRequest(validButUnprocessableToken))
+        .thenThrow(new DecryptionException());
+
+    mockMvc
+        .perform(delete("/subscriptions/{token}", validButUnprocessableToken))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("When data access fails, DELETE /subscriptions responds UNPROCESSABLE_ENTITY")
+  void whenDataAccessFailsDeleteSubscriptionsRespondsUnprocessableEntity() throws Exception {
+    var payload = new CancellationRequest("validProject", "validUserId");
+    var encrypted = "validToken";
     Mockito.when(requestDecrypter.decryptCancellationRequest(encrypted)).thenReturn(payload);
-
-    String json = String.format("{\"project\":\"%s\",\"userId\":\"%s\"}", payload.project(), payload.userId());
-
-    mockMvc
-        .perform(
-            get("/subscription/cancel")
-                .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8)
-                .content(json))
-        .andDo(print())
-        .andExpect(status().is(401));
+    Mockito.doThrow(new RuntimeException("Some test exception in subscription repo."))
+        .when(subscriptionRepository)
+        .cancelSubscription(payload);
 
     mockMvc
         .perform(
-            get("/subscription/cancel")
-                .with(httpBasic("wrongUser", "randompassword"))
+            delete("/subscriptions/{token}", encrypted)
                 .contentType(MediaType.APPLICATION_JSON)
-                .characterEncoding(StandardCharsets.UTF_8)
-                .content(json))
-        .andDo(print())
-        .andExpect(status().is(401));
+                .characterEncoding(StandardCharsets.UTF_8))
+        .andExpect(status().isUnprocessableEntity());
   }
 }

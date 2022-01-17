@@ -1,5 +1,7 @@
 package life.qbic.subscriptions;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -15,25 +17,26 @@ import life.qbic.subscriptions.encryption.RequestDecrypter;
 import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Subscription", description = "Subscription API")
 @SecurityScheme(name = "basic", type = SecuritySchemeType.HTTP, scheme = "basic")
 @RestController
-@RequestMapping("/subscription")
+@RequestMapping("/subscriptions")
 public class SubscriptionController {
 
-  private static final Logger log = LogManager.getLogger(SubscriptionController.class);
+  private static final Logger log = getLogger(SubscriptionController.class);
 
   RequestEncrypter requestEncrypter;
 
@@ -45,16 +48,39 @@ public class SubscriptionController {
   SubscriptionController(
       SubscriptionRepository subscriptionRepository,
       RequestDecrypter requestDecrypter,
-      RequestEncrypter requestEncrypter
-  ) {
+      RequestEncrypter requestEncrypter) {
     this.subscriptionRepository = subscriptionRepository;
     this.requestDecrypter = requestDecrypter;
     this.requestEncrypter = requestEncrypter;
   }
 
+  @Operation(summary = "Cancel a subscription",
+      parameters = {
+          @Parameter(name = "token",
+              description = "The token of an encrypted cancel request.",
+              example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
+      },
+      responses = {
+          @ApiResponse(responseCode = "204", description = "No content. Your subscription was cancelled."
+          ),
+          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
+              content = @Content(mediaType = "text/plain")
+          ),
+          @ApiResponse(responseCode = "422", description = "Unprocessable entity. Your cancellation request was not successful.",
+              content = @Content(mediaType = "text/plain")
+          )
+      })
+  @SecurityRequirement(name = "basic")
+  @DeleteMapping(value = "/{token}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void cancelSubscriptionByToken(@PathVariable String token) {
+    var cancellationRequest = requestDecrypter.decryptCancellationRequest(token);
+    removeSubscription(cancellationRequest);
+  }
+
   @Operation(summary = "Request a subscription cancel token",
       responses = {
-          @ApiResponse(responseCode = "200", description = "Subscription cancel token",
+          @ApiResponse(responseCode = "201", description = "Subscription cancel token was created.",
               content = @Content(mediaType = "text/plain", schema = @Schema(example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"))
           ),
           @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request might not be correct.",
@@ -65,42 +91,18 @@ public class SubscriptionController {
           )
       })
   @SecurityRequirement(name = "basic")
-  @RequestMapping(value = "/cancel", method = RequestMethod.GET)
-  public ResponseEntity<String> getCancellationRequestHash(
-      @RequestBody CancellationRequest cancellationRequest) {
+  @PostMapping(value = "/tokens")
+  public ResponseEntity<String> generateToken(@RequestBody CancellationRequest cancellationRequest) {
     validateRequest(cancellationRequest);
     var cancellationRequestToken = requestEncrypter.encryptCancellationRequest(cancellationRequest);
-    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.OK);
-  }
-
-  @Operation(summary = "Cancel a subscription",
-      parameters = {
-          @Parameter(name = "token",
-              description = "The token of an encrypted cancel request.",
-              example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
-      },
-      responses = {
-          @ApiResponse(responseCode = "202", description = "Subscription cancelled, token accepted.",
-              content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = CancellationRequest.class))
-          ),
-          @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
-              content = @Content(mediaType = "text/plain")
-          )
-      })
-  @RequestMapping(value = "/cancel/{token}", method = RequestMethod.POST)
-  public ResponseEntity<CancellationRequest> cancelSubscription(
-      @PathVariable(value = "token") String requestHash) {
-    var cancellationRequest = requestDecrypter.decryptCancellationRequest(requestHash);
-    removeSubscription(cancellationRequest);
-    return new ResponseEntity<>(cancellationRequest, HttpStatus.ACCEPTED);
+    return new ResponseEntity<>(cancellationRequestToken, HttpStatus.CREATED);
   }
 
   private void removeSubscription(CancellationRequest request) {
     try {
       subscriptionRepository.cancelSubscription(request);
     } catch (Exception e) {
-      log.error(e);
+      log.error(e.getMessage(), e);
       throw new CancellationFailure("Unexpected failure.");
     }
   }
@@ -117,13 +119,13 @@ public class SubscriptionController {
   }
 
   @ExceptionHandler({EncryptionException.class})
-  private ResponseEntity<String> encryptionException(EncryptionException e) {
+  private ResponseEntity<String> encryptionException() {
     return new ResponseEntity<>(
         "Cancellation request generation failed", HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler({DecryptionException.class})
-  private ResponseEntity<String> decryptionException(DecryptionException e) {
+  private ResponseEntity<String> decryptionException() {
     return new ResponseEntity<>(
         "Decryption of your request has failed", HttpStatus.BAD_REQUEST);
   }
@@ -131,28 +133,13 @@ public class SubscriptionController {
   @ExceptionHandler({CancellationFailure.class})
   private ResponseEntity<String> cancellationFailure(CancellationFailure e) {
     return new ResponseEntity<>(
-        "Subscription could not be cancelled. Reason: " + e.reason, HttpStatus.BAD_REQUEST);
+        "Subscription could not be cancelled. Reason: " + e.reason, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
   @ExceptionHandler({MissingPropertyException.class})
   private ResponseEntity<String> missingProperty(MissingPropertyException e) {
     return new ResponseEntity<>(
         "Missing content for required property: " + e.missingProperty, HttpStatus.BAD_REQUEST);
-  }
-
-  @ExceptionHandler({InvalidRequestHashException.class})
-  private ResponseEntity<String> invalidHash(InvalidRequestHashException e) {
-    return new ResponseEntity<>("Invalid request hash.", HttpStatus.BAD_REQUEST);
-  }
-
-  /**
-   * Helper exception class, to indicate invalid hashes
-   */
-  public static class InvalidRequestHashException extends RuntimeException {
-
-    public InvalidRequestHashException() {
-      super();
-    }
   }
 
   /**

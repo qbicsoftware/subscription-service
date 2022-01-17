@@ -1,6 +1,8 @@
 package life.qbic.subscriptions.encryption;
 
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -15,8 +17,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
 
-  private static final Logger log = LogManager.getLogger(CancellationEnigma.class);
+  private static final Logger log = getLogger(CancellationEnigma.class);
 
   private final String SECRET;
   private final String SALT;
@@ -46,14 +47,6 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
       @Value("${encryption.salt}") String salt) {
     SECRET = secret;
     SALT = salt;
-  }
-
-  public Encrypter<CancellationRequest, String> getEncrypter() {
-    return encrypter;
-  }
-
-  public Decrypter<String, CancellationRequest> getDecrypter() {
-    return decrypter;
   }
 
   @Override
@@ -86,7 +79,7 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
         | NoSuchAlgorithmException
         | BadPaddingException
         | InvalidKeyException e) {
-      log.error(e);
+      log.error(e.getMessage(), e);
       throw new DecryptionException();
     }
   }
@@ -104,7 +97,7 @@ public class CancellationEnigma implements RequestDecrypter, RequestEncrypter {
         | NoSuchAlgorithmException
         | BadPaddingException
         | InvalidKeyException e) {
-      log.error(e);
+      log.error(e.getMessage(), e);
       throw new EncryptionException();
     }
   }
