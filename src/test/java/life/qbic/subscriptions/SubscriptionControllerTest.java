@@ -14,7 +14,6 @@ import life.qbic.subscriptions.encryption.RequestDecrypter;
 import life.qbic.subscriptions.encryption.RequestEncrypter;
 import life.qbic.subscriptions.subscriptions.CancellationRequest;
 import life.qbic.subscriptions.subscriptions.SubscriptionRepository;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -85,21 +84,15 @@ class SubscriptionControllerTest {
         .andExpect(content().string(encrypted));
   }
 
-  @Disabled("Disabled until authorization is tackled")
   @Test
-  @DisplayName("When authorization is missing, DELETE /subscriptions responds UNAUTHORIZED")
+  @DisplayName("When authorization is missing, DELETE /subscriptions responds NO CONTENT")
   void whenAuthorizationIsMissingDeleteSubscriptionsRespondsUnauthorized() throws Exception {
-    // currently, this might fail as providing no authenticate header passes.
-    // Probably problem with auth not with this endpoint
-    mockMvc.perform(delete("/subscriptions/{token}", "someValidToken")).andExpect(status().isUnauthorized());
+    mockMvc.perform(delete("/subscriptions/{token}", "someValidToken")).andExpect(status().isNoContent());
   }
 
-  @Disabled("Disabled until authorization is tackled")
   @Test
   @DisplayName("When authorization is missing, POST /subscriptions/tokens responds UNAUTHORIZED")
   void whenAuthorizationIsMissingPostSubscriptionsTokensRespondsUnauthorized() throws Exception {
-    // currently, this might fail as providing no authenticate header passes.
-    // Probably problem with auth not with this endpoint
     mockMvc.perform(post("/subscriptions/tokens")).andExpect(status().isUnauthorized());
   }
 

@@ -61,9 +61,7 @@ public class SubscriptionController {
               example = "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA", schema = @Schema(implementation = String.class))
       },
       responses = {
-          @ApiResponse(responseCode = "204", description = "No content. Your subscription was cancelled.",
-              content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = CancellationRequest.class))
+          @ApiResponse(responseCode = "204", description = "No content. Your subscription was cancelled."
           ),
           @ApiResponse(responseCode = "400", description = "Bad request. Your cancellation request was not successful.",
               content = @Content(mediaType = "text/plain")
