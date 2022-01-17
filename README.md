@@ -7,10 +7,10 @@ This service allows to securely generate cancellation tokens and triggers cancel
 
 ## Endpoints
 
-### GET subscription/cancel
+### POST /subscriptions/tokens
 
-To cancel a subscription a secure hash needs to be generated in order to allow secure unsubscription.
-The cancellation hash will be returned in the form of a string
+To cancel a subscription a token needs to be generated in order to allow unsubscription.
+The cancellation token is returned as String.
 
 To generate a token a valid cancellation request needs to be send:
 ```
@@ -21,7 +21,7 @@ To generate a token a valid cancellation request needs to be send:
 ```
 
 A valid request triggers the generation of a token based on the cancellation request.
-The service answers with 200 and the token in plain text:
+The service answers with 201 and the token in plain text:
 
 ```
 For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA
@@ -29,14 +29,15 @@ For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA
 
 Invalid requests are plain text requests. The service answers with 400 or 401.
 
-### POST subscription/cancel/{token}
+### DELETE subscriptions/{token}
 Cancels a subscription for the given token. The token encodes the project and the user id for the unsubscription.
 A token can look like this:
 ```
 For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA
 ```
-If the unsubscription was successful the service answers with 202 and the original cancellation request.
-Unsuccessful unsubscriptions, e.g. due to invalid tokens, result answer with 400.
+If the unsubscription was successful the service answers with 204 and no content.
+Unsuccessful removal of a subscription, e.g. due to invalid tokens, result answer with 400. 
+In case of correctly formatted tokens but unsuccessfull unsubscription, the answer will be 422 (Unprocessable Entity).
 
 ## Env vars
 The env variables contain information about the salt and the secret. Both of them are used to encrypt and decrypt user information.
