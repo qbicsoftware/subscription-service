@@ -1,4 +1,4 @@
-#<center>Subscription REST Service</center>
+#<p align=center>Subscription REST Service</p>
 
 <div align="center">
 
