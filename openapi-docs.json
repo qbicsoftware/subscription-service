@@ -1,0 +1,139 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Subscription Service",
+    "description": "Cancel project update subscriptions and request cancel tokens.",
+    "contact": {
+      "name": "Sven Fillinger",
+      "email": "sven.fillinger@qbic.uni-tuebingen.de"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Subscription",
+      "description": "Subscription API"
+    }
+  ],
+  "paths": {
+    "/subscriptions/tokens": {
+      "post": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Request a subscription cancel token",
+        "operationId": "generateToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancellationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Subscription cancel token was created.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Your cancellation request might not be correct.",
+            "content": {
+              "text/plain": {}
+            }
+          },
+          "401": {
+            "description": "Full authentication required.",
+            "content": {
+              "text/plain": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/subscriptions/{token}": {
+      "delete": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Cancel a subscription",
+        "operationId": "cancelSubscriptionByToken",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "description": "The token of an encrypted cancel request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content. Your subscription was cancelled."
+          },
+          "400": {
+            "description": "Bad request. Your cancellation request was not successful.",
+            "content": {
+              "text/plain": {}
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity. Your cancellation request was not successful.",
+            "content": {
+              "text/plain": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CancellationRequest": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "basic": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  }
+}
