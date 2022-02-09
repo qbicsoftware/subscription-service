@@ -11,7 +11,7 @@
   </parent>
   <groupId>life.qbic</groupId>
   <artifactId>subscription-service</artifactId>
-  <version>1.0.0-rc.3-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>spring-boot-rest-template</name>
   <description>A REST service to handle project subscriptions</description>
   <properties>
