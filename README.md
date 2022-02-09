@@ -117,5 +117,11 @@ For_lfbnS9iTi4Nmwnei4LA_f8SHga1Rdz4yw6aT8zz0V8PaHm1QEbKQTv1jGCEA
 ```
 If the unsubscription was successful the service answers with 204 and no content.
 Unsuccessful removal of a subscription, e.g. due to invalid tokens, result answer with 400. 
-In case of correctly formatted tokens but unsuccessfull unsubscription, the answer will be 422 (Unprocessable Entity).
+In case of correctly formatted tokens but unsuccessful unsubscription, the answer will be 422 (Unprocessable Entity).
+
+## License
+
+This work is licensed under the [MIT license](https://mit-license.org/).
+
+**Note**: This work uses the [Spring Framework](https://github.com/spring-projects) and derivatives from the Spring framework family, which are licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
