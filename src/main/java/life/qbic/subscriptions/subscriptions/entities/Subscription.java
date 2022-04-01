@@ -22,8 +22,8 @@ public class Subscription {
   @Column(name = "id")
   private int id;
 
-  @Column(name = "project")
-  private String project;
+  @Column(name = "project_code")
+  private String projectCode;
 
   @ManyToOne(
       fetch = FetchType.LAZY,
@@ -34,8 +34,8 @@ public class Subscription {
 
   public Subscription() {}
 
-  public Subscription(String project) {
-    this.project = project;
+  public Subscription(String projectCode) {
+    this.projectCode = projectCode;
   }
 
   public int getId() {
@@ -46,12 +46,12 @@ public class Subscription {
     this.id = id;
   }
 
-  public String getProject() {
-    return project;
+  public String getProjectCode() {
+    return projectCode;
   }
 
-  public void setProject(String project) {
-    this.project = project;
+  public void setProjectCode(String project) {
+    this.projectCode = project;
   }
 
   public Person getPerson() {
@@ -66,7 +66,7 @@ public class Subscription {
   public String toString() {
     return "Subscription{" +
         "id=" + id +
-        ", project='" + project + '\'' +
+        ", project='" + projectCode + '\'' +
         '}';
   }
 }
