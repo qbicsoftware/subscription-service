@@ -56,7 +56,7 @@ class Subscriptions implements SubscriptionRepository {
     try(Session session = sessionFactory.getCurrentSession()) {
       session.beginTransaction();
       // We set the query to filter for subscriptions with the project first
-      Query<Subscription> query = session.createQuery("FROM Subscription s WHERE s.project=:projectCode");
+      Query<Subscription> query = session.createQuery("FROM Subscription s WHERE s.projectCode=:projectCode");
       query.setParameter("projectCode", cancellationRequest.project());
       // Then we submit the query
       List<Subscription> subscriptionCandidates = query.getResultList();
