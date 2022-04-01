@@ -42,7 +42,7 @@ public class Person {
   Integer active;
 
   @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-  @JoinColumn(name = "user_id")
+  @JoinColumn(name = "person_id")
   List<Subscription> subscriptions;
 
   public Person() {

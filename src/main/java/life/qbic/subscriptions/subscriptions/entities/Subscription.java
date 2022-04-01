@@ -29,7 +29,7 @@ public class Subscription {
       fetch = FetchType.LAZY,
       cascade = {CascadeType.DETACH, CascadeType.MERGE,
           CascadeType.REFRESH, CascadeType.PERSIST})
-  @JoinColumn(name = "user_id")
+  @JoinColumn(name = "person_id")
   private Person person;
 
   public Subscription() {}
